@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书馆腿部挠痒模拟器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            font-family: 'ZCOOL QingKe HuangYou', cursive;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0,0,0,0.7);
+        }
+        
+        #game-container {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            background: rgba(10, 15, 40, 0.85);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            border: 3px solid #5d3a00;
+        }
+        
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            font-family: 'Ma Shan Zheng', cursive;
+            text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;
+            letter-spacing: 3px;
+        }
+        
+        h2 {
+            font-size: 36px;
+            margin: 20px 0;
+            color: #ff9966;
+        }
+        
+        p {
+            font-size: 24px;
+            margin: 10px 0;
+            line-height: 1.6;
+            max-width: 90%;
+        }
+        
+        .btn {
+            background: linear-gradient(to bottom, #ff9900, #cc6600);
+            color: #fff;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 24px;
+            padding: 12px 30px;
+            margin: 20px 10px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            background: linear-gradient(to bottom, #ffaa33, #dd7700);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        #game-canvas {
+            background: #0a1022;
+            border: 2px solid #3a2a1e;
+            border-radius: 5px;
+            margin: 10px auto;
+        }
+        
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            background: rgba(30, 20, 10, 0.9);
+            border: 3px solid #5d3a00;
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            z-index: 10;
+        }
+        
+        #dialogue-text {
+            font-size: 22px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #e9d8a6;
+        }
+        
+        #dialogue-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .dialogue-btn {
+            background: linear-gradient(to bottom, #4a752c, #2a4a1c);
+            color: #d1e7dd;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dialogue-btn:hover {
+            background: linear-gradient(to bottom, #5a8a3a, #3a5a2a);
+        }
+        
+        .timer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #ffcc00;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            display: none;
+        }
+        
+        .game-over h2 {
+            font-size: 72px;
+            color: #ff3333;
+            text-shadow: 0 0 20px #ff0000;
+            margin-bottom: 30px;
+        }
+        
+        .game-over p {
+            font-size: 28px;
+            margin: 10px 0;
+        }
+        
+        .ending {
+            font-size: 60px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .quote {
+            font-size: 80px;
+            color: #ffcc00;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .red-text {
+            color: #ff3333;
+            font-size: 100px;
+            text-shadow: 0 0 30px #ff0000;
+            margin-top: 30px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        #level-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #00ccff;
+        }
+        
+        #sans-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+        }
+        
+        .scratch-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid #ff9900;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid #00ccff;
+            text-align: center;
+            width: 80%;
+        }
+        
+        #lu-xun-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        
+        .lu-xun-text {
+            font-size: 80px;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+            margin: 15px 0;
+            opacity: 0;
+            animation: appear 1s forwards;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        @keyframes appear {
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .lu-xun-signature {
+            font-size: 60px;
+            color: #ff6666;
+            margin-top: 60px;
+            text-align: right;
+            width: 80%;
+            opacity: 0;
+            animation: appear 1s 5s forwards;
+        }
+        
+        .heart {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff0000;
+            transform: rotate(45deg);
+        }
+        
+        .heart:before, .heart:after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff0000;
+            border-radius: 50%;
+        }
+        
+        .heart:before {
+            top: -10px;
+            left: 0;
+        }
+        
+        .heart:after {
+            top: 0;
+            left: -10px;
+        }
+        
+        .bullet {
+            position: absolute;
+            border-radius: 50%;
+            background: #00ffff;
+        }
+        
+        .bone-bullet {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 5px;
+        }
+        
+        #level4-timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 36px;
+            color: #ffcc00;
+            text-shadow: 0 0 5px #000;
+            z-index: 10;
+        }
+        
+        .sans-eye {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            overflow: hidden;
+            z-index: 5;
+        }
+        
+        .sans-pupil {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #000000;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #level4-game-area {
+            position: relative;
+            width: 700px;
+            height: 500px;
+            background: #000;
+            border: 2px solid #444;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        
+        .movement-boundary {
+            position: absolute;
+            border: 2px dashed #555;
+            top: 150px;
+            left: 150px;
+            width: 400px;
+            height: 250px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 开始屏幕 -->
+        <div id="start-screen" class="screen active">
+            <h1>图书馆腿部挠痒模拟器</h1>
+            <p>你正在图书馆看书，突然感到腿部奇痒难忍...</p>
+            <p>你必须在不被发现的情况下解决这个问题！</p>
+            <p>注意躲避他人的目光，否则后果不堪设想！</p>
+            <button id="start-btn" class="btn">开始挑战</button>
+            <div style="margin-top: 30px; font-size: 18px; color: #aaa;">
+                <p>游戏共有四关：挠痒 → 自救 → 正确 → 真相</p>
+                <p>失败结局：身败名裂 + 鲁迅名言</p>
+            </div>
+        </div>
+        
+        <!-- 第一关：图书馆挠痒 -->
+        <div id="level1-screen" class="screen">
+            <h2>第一关：腿部奇痒</h2>
+            <canvas id="level1-canvas" width="700" height="400"></canvas>
+            <div id="level1-timer" class="timer">时间: 30秒</div>
+            <div id="level-indicator">第一关</div>
+            <div class="scratch-indicator">点击腿部开始挠痒</div>
+        </div>
+        
+        <!-- 第二关：自救 -->
+        <div id="level2-screen" class="screen">
+            <h2>第二关：自救</h2>
+            <canvas id="level2-canvas" width="700" height="400"></canvas>
+            <div id="level-indicator2">第二关</div>
+            <div class="instructions">使用 ← → 键移动，躲避从上落下的诬陷文字</div>
+        </div>
+        
+        <!-- 第三关：正确 -->
+        <div id="level3-screen" class="screen">
+            <h2>第三关：正确</h2>
+            <canvas id="level3-canvas" width="700" height="400"></canvas>
+            <div id="level-indicator3">第三关</div>
+            <div class="instructions">使用 ← → 键移动，躲避从上落下的诬陷弹幕</div>
+        </div>
+        
+        <!-- 第四关：真相 -->
+        <div id="level4-screen" class="screen">
+            <h2>第四关：真相</h2>
+            <div id="level4-game-area">
+                <div class="sans-eye">
+                    <div class="sans-pupil"></div>
+                </div>
+                <div class="movement-boundary"></div>
+                <div id="level4-timer">时间: 30秒</div>
+            </div>
+            <div id="level-indicator4">最终关</div>
+            <div class="instructions">使用方向键移动红色心脏，躲避蓝色弹幕攻击</div>
+        </div>
+        
+        <!-- 结局屏幕 -->
+        <div id="ending-screen" class="screen">
+            <div id="ending-content"></div>
+            <button id="restart-btn" class="btn">重新开始</button>
+        </div>
+        
+        <!-- 对话系统 -->
+        <div id="dialogue-box">
+            <div id="dialogue-text"></div>
+            <div id="dialogue-options"></div>
+        </div>
+        
+        <!-- 游戏结束弹窗 -->
+        <div id="game-over" class="game-over">
+            <h2 id="game-over-title">卒</h2>
+            <p id="game-over-message"></p>
+            <button id="continue-btn" class="btn">继续挑战</button>
+        </div>
+    </div>
+    
+    <!-- 鲁迅名言全屏 -->
+    <div id="lu-xun-fullscreen">
+        <div class="lu-xun-text" style="animation-delay: 0s">今日若我冷眼旁观,</div>
+        <div class="lu-xun-text" style="animation-delay: 1s">他日亦无人为我摇旗呐喊！</div>
+        <div class="lu-xun-signature" style="animation-delay: 2s">———鲁迅先生</div>
+        <button id="lu-xun-close" class="btn" style="margin-top: 80px; animation-delay: 3s">返回游戏</button>
+    </div>
+
+    <script>
+        // 游戏状态管理
+        const gameState = {
+            currentLevel: 0,
+            levels: [
+                { name: "腿部挠痒", time: 30, completed: false },
+                { name: "自救", time: 0, completed: false },
+                { name: "正确", time: 0, completed: false },
+                { name: "真相", time: 30, completed: false }
+            ],
+            player: {
+                x: 350,
+                y: 300,
+                width: 30,
+                height: 30,
+                speed: 5
+            },
+            eye: {
+                x: 100,
+                y: 100,
+                radius: 40,
+                speedX: 2,
+                speedY: 2
+            },
+            obstacles: [],
+            bullets: [],
+            level4: {
+                player: { x: 350, y: 350 },
+                bullets: [],
+                bones: [],
+                timer: 30,
+                playerElement: null
+            },
+            isScratching: false,
+            gameOver: false,
+            gameWon: false
+        };
+        
+        // DOM元素
+        const screens = {
+            start: document.getElementById('start-screen'),
+            level1: document.getElementById('level1-screen'),
+            level2: document.getElementById('level2-screen'),
+            level3: document.getElementById('level3-screen'),
+            level4: document.getElementById('level4-screen'),
+            ending: document.getElementById('ending-screen')
+        };
+        
+        const canvases = {
+            level1: document.getElementById('level1-canvas'),
+            level2: document.getElementById('level2-canvas'),
+            level3: document.getElementById('level3-canvas')
+        };
+        
+        const ctx = {
+            level1: canvases.level1.getContext('2d'),
+            level2: canvases.level2.getContext('2d'),
+            level3: canvases.level3.getContext('2d')
+        };
+        
+        // 对话内容
+        const dialogues = {
+            level1: {
+                text: "（目光锐利地盯着你）你在图书馆里做什么不雅动作？",
+                options: [
+                    "我只是腿部有点痒...",
+                    "这图书馆是你家开的？",
+                    "（沉默不语）"
+                ],
+                responses: [
+                    "痒？我看你就是故意的！图书馆是文明场所！",
+                    "你什么态度？我要向管理员举报！",
+                    "不说话就是默认了！你这种人不配待在图书馆！"
+                ]
+            }
+        };
+        
+        // 路障文本（第二关）
+        const obstaclesText = [
+            "抛开事实不谈",
+            "哦",
+            "那咋了",
+            "就是",
+            "你没问题别人为什么找你",
+            "一个巴掌拍不响",
+            "为什么只针对你",
+            "反思一下自己",
+            "别狡辩了",
+            "大家都看到了"
+        ];
+        
+        // 弹幕文本（第三关）
+        const bulletText = [
+            "抛开事实不谈",
+            "哦",
+            "那咋了",
+            "就是",
+            "你没问题为什么挠痒",
+            "图书馆是你家？",
+            "没素质",
+            "丢人现眼",
+            "真恶心",
+            "快滚出去"
+        ];
+        
+        // 初始化游戏
+        function init() {
+            // 设置按钮事件
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            document.getElementById('continue-btn').addEventListener('click', continueGame);
+            document.getElementById('lu-xun-close').addEventListener('click', () => {
+                document.getElementById('lu-xun-fullscreen').style.display = 'none';
+            });
+            
+            // 设置鼠标移动事件
+            canvases.level1.addEventListener('mousemove', movePlayer);
+            canvases.level1.addEventListener('click', toggleScratching);
+            
+            // 设置键盘事件
+            window.addEventListener('keydown', handleKeyDown);
+        }
+        
+        // 开始游戏
+        function startGame() {
+            screens.start.classList.remove('active');
+            screens.level1.classList.add('active');
+            gameState.currentLevel = 0;
+            startLevel1();
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            screens.ending.classList.remove('active');
+            screens.start.classList.add('active');
+            gameState.gameOver = false;
+            gameState.gameWon = false;
+        }
+        
+        // 继续游戏
+        function continueGame() {
+            document.getElementById('game-over').style.display = 'none';
+            
+            if (gameState.currentLevel === 0) {
+                startLevel2();
+            } else if (gameState.currentLevel === 1) {
+                startLevel3();
+            } else if (gameState.currentLevel === 2) {
+                startLevel4();
+            }
+        }
+        
+        // 切换关卡
+        function goToLevel(level) {
+            // 隐藏所有屏幕
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            
+            // 显示目标关卡
+            if (level === 0) screens.level1.classList.add('active');
+            else if (level === 1) screens.level2.classList.add('active');
+            else if (level === 2) screens.level3.classList.add('active');
+            else if (level === 3) screens.level4.classList.add('active');
+            else if (level === 4) screens.ending.classList.add('active');
+            
+            gameState.currentLevel = level;
+        }
+        
+        // 第一关：图书馆挠痒
+        let level1Interval;
+        let level1Time = 30;
+        
+        function startLevel1() {
+            // 重置游戏状态
+            gameState.player.x = 350;
+            gameState.player.y = 300;
+            gameState.eye.x = 100;
+            gameState.eye.y = 100;
+            gameState.isScratching = false;
+            level1Time = 30;
+            
+            // 更新计时器显示
+            document.getElementById('level1-timer').textContent = `时间: ${level1Time}秒`;
+            
+            // 开始游戏循环
+            clearInterval(level1Interval);
+            level1Interval = setInterval(updateLevel1, 1000/60);
+        }
+        
+        function updateLevel1() {
+            const canvas = canvases.level1;
+            const ctx = canvases.level1.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            drawLibraryBackground(ctx, canvas.width, canvas.height);
+            
+            // 更新眼睛位置
+            gameState.eye.x += gameState.eye.speedX;
+            gameState.eye.y += gameState.eye.speedY;
+            
+            // 边界检查
+            if (gameState.eye.x + gameState.eye.radius > canvas.width || gameState.eye.x - gameState.eye.radius < 0) {
+                gameState.eye.speedX *= -1;
+            }
+            if (gameState.eye.y + gameState.eye.radius > canvas.height || gameState.eye.y - gameState.eye.radius < 0) {
+                gameState.eye.speedY *= -1;
+            }
+            
+            // 绘制眼睛
+            drawEye(ctx, gameState.eye.x, gameState.eye.y, gameState.eye.radius);
+            
+            // 绘制玩家
+            drawPlayer(ctx, gameState.player.x, gameState.player.y, gameState.isScratching);
+            
+            // 碰撞检测
+            const dx = gameState.player.x - gameState.eye.x;
+            const dy = gameState.player.y - gameState.eye.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < gameState.eye.radius + 20 && gameState.isScratching) {
+                clearInterval(level1Interval);
+                showDialogue();
+            }
+            
+            // 计时器逻辑
+            if (gameState.isScratching) {
+                level1Time -= 1/60;
+                document.getElementById('level1-timer').textContent = `时间: ${Math.ceil(level1Time)}秒`;
+                
+                if (level1Time <= 0) {
+                    clearInterval(level1Interval);
+                    document.getElementById('dialogue-text').textContent = "时间到！对方开启狂暴模式，强制使用技能【正确】！";
+                    showDialogue();
+                }
+            }
+        }
+        
+        function drawLibraryBackground(ctx, width, height) {
+            // 绘制书架背景
+            ctx.fillStyle = '#5d3a00';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制书架
+            ctx.fillStyle = '#3a2a1e';
+            for (let i = 0; i < 5; i++) {
+                ctx.fillRect(50 + i*140, 50, 100, 300);
+            }
+            
+            // 绘制书籍
+            ctx.fillStyle = '#8b4513';
+            for (let shelf = 0; shelf < 5; shelf++) {
+                for (let book = 0; book < 6; book++) {
+                    ctx.fillRect(60 + shelf*140, 70 + book*45, 80, 30);
+                    ctx.fillStyle = '#d2b48c';
+                    ctx.fillRect(65 + shelf*140, 75 + book*45, 70, 20);
+                    ctx.fillStyle = '#8b4513';
+                }
+            }
+            
+            // 绘制桌子
+            ctx.fillStyle = '#2a1e0f';
+            ctx.fillRect(100, 380, 500, 20);
+            ctx.fillRect(120, 400, 40, 100);
+            ctx.fillRect(540, 400, 40, 100);
+            
+            // 绘制玩家座位
+            ctx.fillStyle = '#3a2a1e';
+            ctx.fillRect(300, 400, 100, 100);
+        }
+        
+        function drawEye(ctx, x, y, radius) {
+            // 绘制眼睛
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // 绘制瞳孔
+            ctx.beginPath();
+            ctx.arc(x, y, radius / 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+            
+            // 绘制高光
+            ctx.beginPath();
+            ctx.arc(x - radius/3, y - radius/3, radius/5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            
+            // 绘制眉毛（表示愤怒）
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x - radius/1.5, y - radius/1.2);
+            ctx.lineTo(x - radius/3, y - radius/1.5);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + radius/1.5, y - radius/1.2);
+            ctx.lineTo(x + radius/3, y - radius/1.5);
+            ctx.stroke();
+        }
+        
+        function drawPlayer(ctx, x, y, scratching) {
+            // 绘制玩家身体
+            ctx.fillStyle = '#3366cc';
+            ctx.beginPath();
+            ctx.arc(x, y, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制腿部
+            ctx.strokeStyle = '#3366cc';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(x - 5, y + 15);
+            ctx.lineTo(x - 15, y + 50);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + 5, y + 15);
+            ctx.lineTo(x + 15, y + 50);
+            ctx.stroke();
+            
+            // 绘制腿部挠痒动作
+            if (scratching) {
+                ctx.strokeStyle = '#ff9966';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x + 15, y + 35);
+                ctx.lineTo(x + 40, y + 35);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(x + 40, y + 35);
+                ctx.lineTo(x + 50, y + 30);
+                ctx.stroke();
+                
+                // 绘制痒感特效
+                ctx.fillStyle = 'rgba(255, 150, 0, 0.5)';
+                for (let i = 0; i < 5; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 10 + Math.random() * 15;
+                    const size = 3 + Math.random() * 5;
+                    ctx.beginPath();
+                    ctx.arc(x + 15 + Math.cos(angle) * dist, y + 35 + Math.sin(angle) * dist, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        function movePlayer(e) {
+            const rect = canvases.level1.getBoundingClientRect();
+            gameState.player.x = e.clientX - rect.left;
+            gameState.player.y = e.clientY - rect.top;
+        }
+        
+        function toggleScratching() {
+            gameState.isScratching = !gameState.isScratching;
+        }
+        
+        function showDialogue() {
+            const dialogueBox = document.getElementById('dialogue-box');
+            const dialogueText = document.getElementById('dialogue-text');
+            const dialogueOptions = document.getElementById('dialogue-options');
+            
+            dialogueText.textContent = dialogues.level1.text;
+            dialogueOptions.innerHTML = '';
+            
+            dialogues.level1.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('dialogue-btn');
+                button.addEventListener('click', () => {
+                    dialogueText.textContent = dialogues.level1.responses[index];
+                    dialogueOptions.innerHTML = '';
+                    
+                    const continueBtn = document.createElement('button');
+                    continueBtn.textContent = "继续";
+                    continueBtn.classList.add('dialogue-btn');
+                    continueBtn.addEventListener('click', () => {
+                        dialogueBox.style.display = 'none';
+                        showGameOver("冤", "你被冤枉了，但必须继续自救...");
+                    });
+                    dialogueOptions.appendChild(continueBtn);
+                });
+                dialogueOptions.appendChild(button);
+            });
+            
+            dialogueBox.style.display = 'block';
+        }
+        
+        function showGameOver(title, message) {
+            const gameOver = document.getElementById('game-over');
+            const gameOverTitle = document.getElementById('game-over-title');
+            const gameOverMessage = document.getElementById('game-over-message');
+            
+            gameOverTitle.textContent = title;
+            gameOverMessage.textContent = message;
+            gameOver.style.display = 'flex';
+        }
+        
+        // 第二关：自救（赛车小游戏）
+        let level2Interval;
+        
+        function startLevel2() {
+            goToLevel(1);
+            gameState.obstacles = [];
+            
+            const canvas = canvases.level2;
+            const ctx = canvases.level2.getContext('2d');
+            
+            // 初始化玩家位置
+            gameState.player.x = canvas.width / 2;
+            gameState.player.y = canvas.height - 50;
+            
+            // 开始游戏循环
+            clearInterval(level2Interval);
+            level2Interval = setInterval(updateLevel2, 1000/60);
+        }
+        
+        function updateLevel2() {
+            const canvas = canvases.level2;
+            const ctx = canvases.level2.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            drawCourtBackground(ctx, canvas.width, canvas.height);
+            
+            // 绘制玩家（"清白"文字）
+            ctx.font = "bold 30px 'Ma Shan Zheng', cursive";
+            ctx.fillStyle = "#66cc66";
+            ctx.textAlign = "center";
+            ctx.fillText("清白", gameState.player.x, gameState.player.y);
+            
+            // 生成路障（从上往下）
+            if (Math.random() < 0.05) {
+                const obstacle = {
+                    x: Math.random() * canvas.width,
+                    y: -30,
+                    text: obstaclesText[Math.floor(Math.random() * obstaclesText.length)],
+                    speed: 3 + Math.random() * 4
+                };
+                gameState.obstacles.push(obstacle);
+            }
+            
+            // 更新和绘制路障
+            for (let i = gameState.obstacles.length - 1; i >= 0; i--) {
+                const obstacle = gameState.obstacles[i];
+                
+                // 移动路障（从上往下）
+                obstacle.y += obstacle.speed;
+                
+                // 绘制路障
+                ctx.font = "20px 'ZCOOL QingKe HuangYou', cursive";
+                ctx.fillStyle = "#cc6666";
+                ctx.textAlign = "center";
+                ctx.fillText(obstacle.text, obstacle.x, obstacle.y);
+                
+                // 碰撞检测
+                const dx = gameState.player.x - obstacle.x;
+                const dy = gameState.player.y - obstacle.y;
+                if (Math.abs(dx) < 50 && Math.abs(dy) < 30) {
+                    clearInterval(level2Interval);
+                    showGameOver("卒", "你被流言蜚语击倒了...");
+                    return;
+                }
+                
+                // 移除超出屏幕的障碍物
+                if (obstacle.y > canvas.height + 50) {
+                    gameState.obstacles.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawCourtBackground(ctx, width, height) {
+            // 绘制法庭背景
+            ctx.fillStyle = '#1a3a5a';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制法官席
+            ctx.fillStyle = '#5d3a00';
+            ctx.fillRect(width/2 - 150, 50, 300, 80);
+            
+            // 绘制法官椅
+            ctx.fillStyle = '#3a2a1e';
+            ctx.fillRect(width/2 - 30, 130, 60, 150);
+            
+            // 绘制文字
+            ctx.font = "bold 24px 'Ma Shan Zheng', cursive";
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.fillText("道德法庭", width/2, 30);
+            
+            // 绘制地板线条
+            ctx.strokeStyle = '#d2b48c';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, height);
+                ctx.lineTo(i + 20, height - 20);
+                ctx.stroke();
+            }
+        }
+        
+        // 第三关：正确（弹幕游戏）
+        let level3Interval;
+        
+        function startLevel3() {
+            goToLevel(2);
+            gameState.bullets = [];
+            
+            const canvas = canvases.level3;
+            const ctx = canvases.level3.getContext('2d');
+            
+            // 初始化玩家位置
+            gameState.player.x = canvas.width / 2;
+            gameState.player.y = canvas.height - 30;
+            
+            // 开始游戏循环
+            clearInterval(level3Interval);
+            level3Interval = setInterval(updateLevel3, 1000/60);
+        }
+        
+        function updateLevel3() {
+            const canvas = canvases.level3;
+            const ctx = canvases.level3.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            drawInternetBackground(ctx, canvas.width, canvas.height);
+            
+            // 绘制玩家
+            ctx.fillStyle = '#66ccff';
+            ctx.fillRect(gameState.player.x - 25, gameState.player.y - 10, 50, 20);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = "bold 18px 'ZCOOL QingKe HuangYou', cursive";
+            ctx.textAlign = "center";
+            ctx.fillText("真相", gameState.player.x, gameState.player.y + 5);
+            
+            // 生成弹幕（从上往下）
+            if (Math.random() < 0.08) {
+                const bullet = {
+                    x: Math.random() * canvas.width,
+                    y: -20,
+                    text: bulletText[Math.floor(Math.random() * bulletText.length)],
+                    speed: 2 + Math.random() * 5
+                };
+                gameState.bullets.push(bullet);
+            }
+            
+            // 更新和绘制弹幕
+            for (let i = gameState.bullets.length - 1; i >= 0; i--) {
+                const bullet = gameState.bullets[i];
+                
+                // 移动弹幕（从上往下）
+                bullet.y += bullet.speed;
+                
+                // 绘制弹幕
+                ctx.font = "20px 'ZCOOL QingKe HuangYou', cursive";
+                ctx.fillStyle = "#ff6666";
+                ctx.textAlign = "center";
+                ctx.fillText(bullet.text, bullet.x, bullet.y);
+                
+                // 碰撞检测
+                const dx = gameState.player.x - bullet.x;
+                const dy = gameState.player.y - bullet.y;
+                if (Math.abs(dx) < 50 && Math.abs(dy) < 20) {
+                    clearInterval(level3Interval);
+                    showGameOver("死", "你被网络暴力吞噬了...");
+                    return;
+                }
+                
+                // 移除超出屏幕的弹幕
+                if (bullet.y > canvas.height + 50) {
+                    gameState.bullets.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawInternetBackground(ctx, width, height) {
+            // 绘制网络背景
+            ctx.fillStyle = '#0a1022';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制一些网络元素
+            ctx.strokeStyle = '#224466';
+            ctx.lineWidth = 1;
+            
+            // 绘制网格线
+            for (let x = 0; x < width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制一些图标
+            ctx.fillStyle = '#ff4455';
+            ctx.beginPath();
+            ctx.arc(100, 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#44ff55';
+            ctx.beginPath();
+            ctx.arc(width - 100, 150, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#4455ff';
+            ctx.beginPath();
+            ctx.arc(150, height - 80, 15, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // 第四关：真相（Sans战）
+        let level4Interval;
+        let playerElement;
+        
+        function startLevel4() {
+            goToLevel(3);
+            const gameArea = document.getElementById('level4-game-area');
+            
+            // 重置游戏状态
+            gameState.level4.player = { x: 350, y: 350 };
+            gameState.level4.bullets = [];
+            gameState.level4.bones = [];
+            gameState.level4.timer = 30;
+            
+            // 更新计时器
+            document.getElementById('level4-timer').textContent = `时间: ${gameState.level4.timer}秒`;
+            
+            // 创建玩家元素（红色心脏）
+            if (playerElement) playerElement.remove();
+            playerElement = document.createElement('div');
+            playerElement.className = 'heart';
+            playerElement.style.left = `${gameState.level4.player.x}px`;
+            playerElement.style.top = `${gameState.level4.player.y}px`;
+            gameArea.appendChild(playerElement);
+            gameState.level4.playerElement = playerElement;
+            
+            // 开始游戏循环
+            clearInterval(level4Interval);
+            level4Interval = setInterval(updateLevel4, 1000/60);
+        }
+        
+        function updateLevel4() {
+            const gameArea = document.getElementById('level4-game-area');
+            
+            // 更新计时器
+            gameState.level4.timer -= 1/60;
+            document.getElementById('level4-timer').textContent = `时间: ${Math.ceil(gameState.level4.timer)}秒`;
+            
+            // 生成弹幕
+            if (Math.random() < 0.1) {
+                createBullet();
+            }
+            
+            // 生成骨头弹幕
+            if (Math.random() < 0.05) {
+                createBone();
+            }
+            
+            // 更新弹幕位置
+            updateBullets();
+            
+            // 检查游戏结束条件
+            if (gameState.level4.timer <= 0) {
+                clearInterval(level4Interval);
+                showEnding(true);
+            }
+        }
+        
+        function createBullet() {
+            const gameArea = document.getElementById('level4-game-area');
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            
+            // 随机大小
+            const size = 10 + Math.random() * 20;
+            bullet.style.width = `${size}px`;
+            bullet.style.height = `${size}px`;
+            
+            // 随机起始位置（从眼睛发射）
+            const startX = 350 + (Math.random() * 100 - 50);
+            const startY = 100;
+            
+            bullet.style.left = `${startX}px`;
+            bullet.style.top = `${startY}px`;
+            
+            // 随机速度
+            const speedX = (Math.random() - 0.5) * 6;
+            const speedY = 2 + Math.random() * 4;
+            
+            gameArea.appendChild(bullet);
+            gameState.level4.bullets.push({
+                element: bullet,
+                x: startX,
+                y: startY,
+                speedX: speedX,
+                speedY: speedY,
+                size: size
+            });
+        }
+        
+        function createBone() {
+            const gameArea = document.getElementById('level4-game-area');
+            const bone = document.createElement('div');
+            bone.className = 'bone-bullet';
+            
+            // 骨头大小
+            const width = 100;
+            const height = 20;
+            bone.style.width = `${width}px`;
+            bone.style.height = `${height}px`;
+            
+            // 随机起始位置
+            const startX = Math.random() * 600;
+            const startY = -30;
+            
+            bone.style.left = `${startX}px`;
+            bone.style.top = `${startY}px`;
+            
+            // 速度
+            const speedY = 3 + Math.random() * 3;
+            
+            gameArea.appendChild(bone);
+            gameState.level4.bones.push({
+                element: bone,
+                x: startX,
+                y: startY,
+                speedY: speedY,
+                width: width,
+                height: height
+            });
+        }
+        
+        function updateBullets() {
+            const playerX = gameState.level4.player.x;
+            const playerY = gameState.level4.player.y;
+            const playerSize = 20; // 玩家大小
+            
+            // 更新子弹位置
+            for (let i = gameState.level4.bullets.length - 1; i >= 0; i--) {
+                const bullet = gameState.level4.bullets[i];
+                bullet.x += bullet.speedX;
+                bullet.y += bullet.speedY;
+                
+                bullet.element.style.left = `${bullet.x}px`;
+                bullet.element.style.top = `${bullet.y}px`;
+                
+                // 碰撞检测
+                const dx = playerX - bullet.x;
+                const dy = playerY - bullet.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < playerSize + bullet.size/2) {
+                    clearInterval(level4Interval);
+                    showLuXunQuote();
+                    return;
+                }
+                
+                // 移除超出屏幕的子弹
+                if (bullet.y > 550 || bullet.x < -50 || bullet.x > 750) {
+                    bullet.element.remove();
+                    gameState.level4.bullets.splice(i, 1);
+                }
+            }
+            
+            // 更新骨头位置
+            for (let i = gameState.level4.bones.length - 1; i >= 0; i--) {
+                const bone = gameState.level4.bones[i];
+                bone.y += bone.speedY;
+                
+                bone.element.style.top = `${bone.y}px`;
+                
+                // 碰撞检测
+                if (bone.y < playerY + playerSize && 
+                    bone.y + bone.height > playerY &&
+                    bone.x < playerX + playerSize &&
+                    bone.x + bone.width > playerX) {
+                    clearInterval(level4Interval);
+                    showLuXunQuote();
+                    return;
+                }
+                
+                // 移除超出屏幕的骨头
+                if (bone.y > 550) {
+                    bone.element.remove();
+                    gameState.level4.bones.splice(i, 1);
+                }
+            }
+        }
+        
+        // 显示鲁迅名言（全屏）
+        function showLuXunQuote() {
+            document.getElementById('lu-xun-fullscreen').style.display = 'flex';
+        }
+        
+        // 显示结局
+        function showEnding(isWin) {
+            goToLevel(4);
+            const endingContent = document.getElementById('ending-content');
+            
+            if (isWin) {
+                endingContent.innerHTML = `
+                    <h2>结局一</h2>
+                    <div class="quote">“无事发生”</div>
+                    <p>你成功证明了清白，但互联网没有记忆</p>
+                    <p>一切仿佛从未发生，生活继续...</p>
+                `;
+            } else {
+                endingContent.innerHTML = `
+                    <h2>结局二</h2>
+                    <p>身败名裂，你激情cos牛顿第一,二,三定律</p>
+                    <div class="red-text">死</div>
+                `;
+                
+                // 显示鲁迅名言
+                setTimeout(showLuXunQuote, 1000);
+            }
+        }
+        
+        // 键盘控制
+        function handleKeyDown(e) {
+            // 第二关控制
+            if (gameState.currentLevel === 1) {
+                if (e.key === 'ArrowLeft' && gameState.player.x > 30) {
+                    gameState.player.x -= 10;
+                } else if (e.key === 'ArrowRight' && gameState.player.x < canvases.level2.width - 30) {
+                    gameState.player.x += 10;
+                }
+            } 
+            // 第三关控制
+            else if (gameState.currentLevel === 2) {
+                if (e.key === 'ArrowLeft' && gameState.player.x > 30) {
+                    gameState.player.x -= 10;
+                } else if (e.key === 'ArrowRight' && gameState.player.x < canvases.level3.width - 30) {
+                    gameState.player.x += 10;
+                }
+            }
+            // 第四关控制
+            else if (gameState.currentLevel === 3) {
+                const speed = 8;
+                const boundary = {
+                    left: 150,
+                    right: 550,
+                    top: 150,
+                    bottom: 400
+                };
+                
+                if (e.key === 'ArrowLeft' && gameState.level4.player.x > boundary.left) {
+                    gameState.level4.player.x -= speed;
+                } else if (e.key === 'ArrowRight' && gameState.level4.player.x < boundary.right) {
+                    gameState.level4.player.x += speed;
+                } else if (e.key === 'ArrowUp' && gameState.level4.player.y > boundary.top) {
+                    gameState.level4.player.y -= speed;
+                } else if (e.key === 'ArrowDown' && gameState.level4.player.y < boundary.bottom) {
+                    gameState.level4.player.y += speed;
+                }
+                
+                if (gameState.level4.playerElement) {
+                    gameState.level4.playerElement.style.left = `${gameState.level4.player.x}px`;
+                    gameState.level4.playerElement.style.top = `${gameState.level4.player.y}px`;
+                }
+            }
+        }
+        
+        // 初始化游戏
+        window.onload = init;
+    </script>
+</body>
+</html>
