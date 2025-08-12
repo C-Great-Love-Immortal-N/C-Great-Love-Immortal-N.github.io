@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图书馆腿部挠痒模拟器 - 第二关优化</title>
+    <title>图书馆腿部挠痒模拟器 - 血条模式</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
     <style>
         * {
@@ -237,6 +237,42 @@
             color: rgba(255, 255, 255, 0.6);
             font-style: italic;
             z-index: 5;
+        }
+        
+        .health-bar-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 5;
+        }
+        
+        .health-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ff0000, #ff9900, #66ff00);
+            transition: width 0.3s ease;
+        }
+        
+        .health-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 3px black;
         }
         
         #sans-container {
@@ -529,6 +565,7 @@
             <div style="margin-top: 20px; font-size: 0.9rem; color: #aaa;">
                 <p>游戏共有四关：挠痒 → 自救 → 正确 → 真相</p>
                 <p>失败结局：身败名裂 + 鲁迅名言</p>
+                <p style="margin-top: 10px; font-weight: bold; color: #ff6666;">新增血条系统：受伤会减少生命值！</p>
             </div>
         </div>
         
@@ -552,6 +589,10 @@
                 <div class="control-btn" id="right-btn">→</div>
             </div>
             <div class="author-signature">作者：大爱不朽</div>
+            <div class="health-bar-container">
+                <div id="level2-health-bar" class="health-bar"></div>
+                <div id="level2-health-text" class="health-text">生命值: 100%</div>
+            </div>
         </div>
         
         <!-- 第三关：正确 -->
@@ -563,6 +604,10 @@
             <div class="mobile-controls">
                 <div class="control-btn" id="left-btn2">←</div>
                 <div class="control-btn" id="right-btn2">→</div>
+            </div>
+            <div class="health-bar-container">
+                <div id="level3-health-bar" class="health-bar"></div>
+                <div id="level3-health-text" class="health-text">生命值: 100%</div>
             </div>
         </div>
         
@@ -583,6 +628,10 @@
                 <div class="control-btn" id="left-btn3">←</div>
                 <div class="control-btn" id="down-btn">↓</div>
                 <div class="control-btn" id="right-btn3">→</div>
+            </div>
+            <div class="health-bar-container">
+                <div id="level4-health-bar" class="health-bar"></div>
+                <div id="level4-health-text" class="health-text">生命值: 100%</div>
             </div>
         </div>
         
@@ -652,7 +701,20 @@
             gameWon: false,
             level2: {
                 backgroundOffset: 0,
-                playerSpeed: 2.5
+                playerSpeed: 2.5,
+                health: 100,
+                gameTime: 0,
+                speedFactor: 1
+            },
+            level3: {
+                health: 100,
+                gameTime: 0,
+                speedFactor: 1
+            },
+            level4: {
+                health: 100,
+                gameTime: 0,
+                speedFactor: 1
             }
         };
         
@@ -873,6 +935,31 @@
             else if (level === 4) screens.ending.classList.add('active');
             
             gameState.currentLevel = level;
+        }
+        
+        // 更新血条显示
+        function updateHealthBar(level) {
+            const healthBar = document.getElementById(`level${level}-health-bar`);
+            const healthText = document.getElementById(`level${level}-health-text`);
+            let health = 100;
+            
+            if (level === 2) health = gameState.level2.health;
+            else if (level === 3) health = gameState.level3.health;
+            else if (level === 4) health = gameState.level4.health;
+            
+            healthBar.style.width = `${health}%`;
+            healthText.textContent = `生命值: ${Math.round(health)}%`;
+            
+            // 根据生命值改变颜色
+            if (health < 30) {
+                healthBar.style.background = 'linear-gradient(to right, #ff0000, #cc0000)';
+            } else if (health < 60) {
+                healthBar.style.background = 'linear-gradient(to right, #ff9900, #ff6600)';
+            } else {
+                healthBar.style.background = 'linear-gradient(to right, #ff0000, #ff9900, #66ff00)';
+            }
+            
+            return health;
         }
         
         // 第一关：图书馆挠痒
@@ -1138,6 +1225,12 @@
             goToLevel(1);
             gameState.obstacles = [];
             gameState.level2.backgroundOffset = 0;
+            gameState.level2.health = 100;
+            gameState.level2.gameTime = 0;
+            gameState.level2.speedFactor = 1;
+            
+            // 重置血条
+            updateHealthBar(2);
             
             const canvas = canvases.level2;
             
@@ -1154,11 +1247,19 @@
             const canvas = canvases.level2;
             const ctx = canvases.level2.getContext('2d');
             
+            // 更新游戏时间（用于动态难度）
+            gameState.level2.gameTime += 1/60;
+            
+            // 5秒后开始加速
+            if (gameState.level2.gameTime > 5) {
+                gameState.level2.speedFactor = 1 + (gameState.level2.gameTime - 5) * 0.05;
+            }
+            
             // 清空画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             // 更新背景偏移量（产生前进效果）
-            gameState.level2.backgroundOffset += gameState.level2.playerSpeed;
+            gameState.level2.backgroundOffset += gameState.level2.playerSpeed * gameState.level2.speedFactor;
             if (gameState.level2.backgroundOffset >= canvas.height) {
                 gameState.level2.backgroundOffset = 0;
             }
@@ -1167,7 +1268,7 @@
             drawCourtBackground(ctx, canvas.width, canvas.height, gameState.level2.backgroundOffset);
             
             // 玩家强制向前移动（向上移动）
-            gameState.player.y -= gameState.level2.playerSpeed;
+            gameState.player.y -= gameState.level2.playerSpeed * gameState.level2.speedFactor;
             
             // 绘制玩家（"清白"文字）
             ctx.font = "bold 30px 'Ma Shan Zheng', cursive";
@@ -1176,12 +1277,12 @@
             ctx.fillText("清白", gameState.player.x, gameState.player.y);
             
             // 生成路障（从上往下）
-            if (Math.random() < 0.0425) { // 降低15%攻击频率
+            if (Math.random() < 0.0425 * (1/gameState.level2.speedFactor)) { // 动态调整攻击频率
                 const obstacle = {
                     x: Math.random() * canvas.width,
                     y: -30,
                     text: obstaclesText[Math.floor(Math.random() * obstaclesText.length)],
-                    speed: 3 + Math.random() * 4
+                    speed: (3 + Math.random() * 4) * gameState.level2.speedFactor
                 };
                 gameState.obstacles.push(obstacle);
             }
@@ -1203,9 +1304,19 @@
                 const dx = gameState.player.x - obstacle.x;
                 const dy = gameState.player.y - obstacle.y;
                 if (Math.abs(dx) < 50 && Math.abs(dy) < 30) {
-                    cancelAnimationFrame(level2Animation);
-                    showGameOver("卒", "你被流言蜚语击倒了...");
-                    return;
+                    // 减少生命值
+                    gameState.level2.health -= 10;
+                    updateHealthBar(2);
+                    
+                    // 移除碰撞的障碍物
+                    gameState.obstacles.splice(i, 1);
+                    
+                    // 检查生命值
+                    if (gameState.level2.health <= 0) {
+                        cancelAnimationFrame(level2Animation);
+                        showGameOver("卒", "你被流言蜚语击倒了...");
+                        return;
+                    }
                 }
                 
                 // 移除超出屏幕的障碍物
@@ -1267,6 +1378,12 @@
         function startLevel3() {
             goToLevel(2);
             gameState.bullets = [];
+            gameState.level3.health = 100;
+            gameState.level3.gameTime = 0;
+            gameState.level3.speedFactor = 1;
+            
+            // 重置血条
+            updateHealthBar(3);
             
             const canvas = canvases.level3;
             
@@ -1283,6 +1400,14 @@
             const canvas = canvases.level3;
             const ctx = canvases.level3.getContext('2d');
             
+            // 更新游戏时间（用于动态难度）
+            gameState.level3.gameTime += 1/60;
+            
+            // 5秒后开始加速
+            if (gameState.level3.gameTime > 5) {
+                gameState.level3.speedFactor = 1 + (gameState.level3.gameTime - 5) * 0.05;
+            }
+            
             // 清空画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -1298,12 +1423,12 @@
             ctx.fillText("真相", gameState.player.x, gameState.player.y + 5);
             
             // 生成弹幕（从上往下）
-            if (Math.random() < 0.08) {
+            if (Math.random() < 0.08 * (1/gameState.level3.speedFactor)) {
                 const bullet = {
                     x: Math.random() * canvas.width,
                     y: -20,
                     text: bulletText[Math.floor(Math.random() * bulletText.length)],
-                    speed: 2 + Math.random() * 5
+                    speed: (2 + Math.random() * 5) * gameState.level3.speedFactor
                 };
                 gameState.bullets.push(bullet);
             }
@@ -1325,9 +1450,19 @@
                 const dx = gameState.player.x - bullet.x;
                 const dy = gameState.player.y - bullet.y;
                 if (Math.abs(dx) < 50 && Math.abs(dy) < 20) {
-                    cancelAnimationFrame(level3Animation);
-                    showGameOver("死", "你被网络暴力吞噬了...");
-                    return;
+                    // 减少生命值
+                    gameState.level3.health -= 5;
+                    updateHealthBar(3);
+                    
+                    // 移除碰撞的弹幕
+                    gameState.bullets.splice(i, 1);
+                    
+                    // 检查生命值
+                    if (gameState.level3.health <= 0) {
+                        cancelAnimationFrame(level3Animation);
+                        showGameOver("死", "你被网络暴力吞噬了...");
+                        return;
+                    }
                 }
                 
                 // 移除超出屏幕的弹幕
@@ -1393,9 +1528,12 @@
             gameState.level4.bullets = [];
             gameState.level4.bones = [];
             gameState.level4.timer = 30;
+            gameState.level4.health = 100;
+            gameState.level4.gameTime = 0;
+            gameState.level4.speedFactor = 1;
             
-            // 更新计时器
-            document.getElementById('level4-timer').textContent = `时间: ${gameState.level4.timer}秒`;
+            // 更新血条
+            updateHealthBar(4);
             
             // 创建玩家元素（红色心脏）
             if (playerElement) playerElement.remove();
@@ -1418,13 +1556,21 @@
             gameState.level4.timer -= 1/60;
             document.getElementById('level4-timer').textContent = `时间: ${Math.ceil(gameState.level4.timer)}秒`;
             
+            // 更新游戏时间（用于动态难度）
+            gameState.level4.gameTime += 1/60;
+            
+            // 5秒后开始加速
+            if (gameState.level4.gameTime > 5) {
+                gameState.level4.speedFactor = 1 + (gameState.level4.gameTime - 5) * 0.05;
+            }
+            
             // 生成弹幕
-            if (Math.random() < 0.1) {
+            if (Math.random() < 0.1 * (1/gameState.level4.speedFactor)) {
                 createBullet();
             }
             
             // 生成骨头弹幕
-            if (Math.random() < 0.05) {
+            if (Math.random() < 0.05 * (1/gameState.level4.speedFactor)) {
                 createBone();
             }
             
@@ -1459,8 +1605,8 @@
             bullet.style.top = `${startY}px`;
             
             // 随机速度
-            const speedX = (Math.random() - 0.5) * 6;
-            const speedY = 2 + Math.random() * 4;
+            const speedX = (Math.random() - 0.5) * 6 * gameState.level4.speedFactor;
+            const speedY = (2 + Math.random() * 4) * gameState.level4.speedFactor;
             
             gameArea.appendChild(bullet);
             gameState.level4.bullets.push({
@@ -1492,7 +1638,7 @@
             bone.style.top = `${startY}px`;
             
             // 速度
-            const speedY = 3 + Math.random() * 3;
+            const speedY = (3 + Math.random() * 3) * gameState.level4.speedFactor;
             
             gameArea.appendChild(bone);
             gameState.level4.bones.push({
@@ -1525,9 +1671,20 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance < playerSize + bullet.size/2) {
-                    cancelAnimationFrame(level4Animation);
-                    showLuXunQuote();
-                    return;
+                    // 减少生命值
+                    gameState.level4.health -= 15;
+                    updateHealthBar(4);
+                    
+                    // 移除子弹
+                    bullet.element.remove();
+                    gameState.level4.bullets.splice(i, 1);
+                    
+                    // 检查生命值
+                    if (gameState.level4.health <= 0) {
+                        cancelAnimationFrame(level4Animation);
+                        showLuXunQuote();
+                        return;
+                    }
                 }
                 
                 // 移除超出屏幕的子弹
@@ -1549,9 +1706,20 @@
                     bone.y + bone.height > playerY &&
                     bone.x < playerX + playerSize &&
                     bone.x + bone.width > playerX) {
-                    cancelAnimationFrame(level4Animation);
-                    showLuXunQuote();
-                    return;
+                    // 减少生命值
+                    gameState.level4.health -= 15;
+                    updateHealthBar(4);
+                    
+                    // 移除骨头
+                    bone.element.remove();
+                    gameState.level4.bones.splice(i, 1);
+                    
+                    // 检查生命值
+                    if (gameState.level4.health <= 0) {
+                        cancelAnimationFrame(level4Animation);
+                        showLuXunQuote();
+                        return;
+                    }
                 }
                 
                 // 移除超出屏幕的骨头
