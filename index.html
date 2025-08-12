@@ -1,3 +1,4 @@
+<!-- v2025-08-12-second3-buttons-fixed-longer-level2 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1280,6 +1281,7 @@
         let level2Animation;
         
         function startLevel2() {
+            document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'flex');
             goToLevel(1);
             gameState.obstacles = [];
             gameState.level2.backgroundOffset = 0;
@@ -1384,7 +1386,7 @@
             }
             
             // 检查是否到达终点（法庭）
-            if (gameState.player.y <= -200) {
+            if (gameState.player.y <= -800) {
                 cancelAnimationFrame(level2Animation);
                 setTimeout(() => {
                     startLevel3();
@@ -1434,6 +1436,7 @@
         let level3Animation;
         
         function startLevel3() {
+            document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'flex');
             goToLevel(2);
             gameState.bullets = [];
             gameState.level3.health = 100;
