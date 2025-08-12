@@ -551,7 +551,21 @@
                 font-size: 20px;
             }
         }
-    </style>
+    
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+@keyframes arrowBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+}
+
+
+/* 第四关模式选择样式 */
+#level4-mode-select .btn { font-size: 1rem; }
+
+</style>
 </head>
 <body>
     <div id="game-container">
@@ -574,6 +588,11 @@
             <h2>第一关：腿部奇痒</h2>
             <canvas id="level1-canvas" class="game-canvas"></canvas>
             <div id="level1-timer" class="timer">时间: 30秒</div>
+<div id="level1-hint" style="position:absolute;top:60%;left:50%;transform:translateX(-50%);text-align:center;animation:blink 1s infinite;">
+    <div style="font-size:1.2rem;color:#ffcc00;text-shadow:0 0 5px #000;">点击腿部开始挠痒</div>
+    <div style="font-size:2rem;color:#ffcc00;animation:arrowBounce 0.8s infinite;">⬇</div>
+</div>
+
             <div id="level-indicator" class="level-indicator">第一关</div>
             <div class="scratch-indicator">点击腿部开始挠痒</div>
         </div>
@@ -612,7 +631,7 @@
         </div>
         
         <!-- 第四关：真相 -->
-        <div id="level4-screen" class="screen">
+        <div id="level4-screen" class="screen">            <div id="level4-mode-select" style="position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:50;gap:20px;display:none;">                <h2 style="font-size:2rem;color:#ffcc00;margin-bottom:10px;">选择第四关模式</h2>                <div style="display:flex;gap:20px;">                    <button id="level4-mode-real" class="btn" style="padding:12px 24px;">真实版（高难度）</button>                    <button id="level4-mode-dream" class="btn" style="padding:12px 24px;">梦幻版（低难度）</button>                </div>                <div style="font-size:0.95rem;color:#ddd;max-width:80%;text-align:center;">真实版：更多弹幕、速度与伤害更高。<br>梦幻版：更少弹幕、速度慢、伤害极低，适合练习。</div>            </div>
             <h2>第四关：真相</h2>
             <div id="level4-game-area">
                 <div class="sans-eye">
@@ -837,6 +856,28 @@
             document.getElementById('left-btn3').addEventListener('touchstart', () => moveMobilePlayer('left'));
             document.getElementById('down-btn').addEventListener('touchstart', () => moveMobilePlayer('down'));
             document.getElementById('right-btn3').addEventListener('touchstart', () => moveMobilePlayer('right'));
+            // 持续移动功能
+            let moveInterval;
+            function startMoving(dir) {
+                if (moveInterval) clearInterval(moveInterval);
+                moveInterval = setInterval(() => moveMobilePlayer(dir), 50);
+            }
+            function stopMoving() {
+                clearInterval(moveInterval);
+                moveInterval = null;
+            }
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.addEventListener('touchend', stopMoving);
+            });
+            document.getElementById('left-btn').addEventListener('touchstart', () => startMoving('left'));
+            document.getElementById('right-btn').addEventListener('touchstart', () => startMoving('right'));
+            document.getElementById('left-btn2').addEventListener('touchstart', () => startMoving('left'));
+            document.getElementById('right-btn2').addEventListener('touchstart', () => startMoving('right'));
+            document.getElementById('up-btn').addEventListener('touchstart', () => startMoving('up'));
+            document.getElementById('left-btn3').addEventListener('touchstart', () => startMoving('left'));
+            document.getElementById('down-btn').addEventListener('touchstart', () => startMoving('down'));
+            document.getElementById('right-btn3').addEventListener('touchstart', () => startMoving('right'));
+
         }
         
         // 移动设备玩家控制
@@ -1277,7 +1318,7 @@
             ctx.fillText("清白", gameState.player.x, gameState.player.y);
             
             // 生成路障（从上往下）
-            if (Math.random() < 0.0425 * (1/gameState.level2.speedFactor)) { // 动态调整攻击频率
+            if (Math.random() < 0.07 * (1/gameState.level2.speedFactor)) { // 动态调整攻击频率
                 const obstacle = {
                     x: Math.random() * canvas.width,
                     y: -30,
@@ -1326,7 +1367,7 @@
             }
             
             // 检查是否到达终点（法庭）
-            if (gameState.player.y <= 50) {
+            if (gameState.player.y <= -200) {
                 cancelAnimationFrame(level2Animation);
                 setTimeout(() => {
                     startLevel3();
@@ -1423,7 +1464,7 @@
             ctx.fillText("真相", gameState.player.x, gameState.player.y + 5);
             
             // 生成弹幕（从上往下）
-            if (Math.random() < 0.08 * (1/gameState.level3.speedFactor)) {
+            if (Math.random() < 0.12 * (1/gameState.level3.speedFactor)) {
                 const bullet = {
                     x: Math.random() * canvas.width,
                     y: -20,
@@ -1519,7 +1560,52 @@
         let level4Animation;
         let playerElement;
         
-        function startLevel4() {
+        
+function startLevel4() {
+            goToLevel(3);
+            const modeSelect = document.getElementById('level4-mode-select');
+            // 默认参数（普通版）
+            gameState.level4.bulletProb = 0.15;
+            gameState.level4.boneProb = 0.08;
+            gameState.level4.bulletSpeedMult = 1;
+            gameState.level4.boneSpeedMult = 1;
+            gameState.level4.bulletDamage = 4; // 之前设为 4%
+            gameState.level4.boneDamage = 4;
+            // 显示选择界面
+            modeSelect.style.display = 'flex';
+            // 绑定按钮（点击一次即可）
+            const realBtn = document.getElementById('level4-mode-real');
+            const dreamBtn = document.getElementById('level4-mode-dream');
+            function clearHandlers() {
+                realBtn.onclick = null;
+                dreamBtn.onclick = null;
+                modeSelect.style.display = 'none';
+            }
+            realBtn.onclick = function() {
+                // 真实版：更难
+                gameState.level4.bulletProb *= 1.5;
+                gameState.level4.boneProb *= 1.5;
+                gameState.level4.bulletSpeedMult *= 1.3;
+                gameState.level4.boneSpeedMult *= 1.3;
+                gameState.level4.bulletDamage *= 2;
+                gameState.level4.boneDamage *= 2;
+                clearHandlers();
+                beginLevel4();
+            };
+            dreamBtn.onclick = function() {
+                // 梦幻版：非常容易
+                gameState.level4.bulletProb *= 0.3;
+                gameState.level4.boneProb *= 0.3;
+                gameState.level4.bulletSpeedMult *= 0.5;
+                gameState.level4.boneSpeedMult *= 0.5;
+                gameState.level4.bulletDamage = 1;
+                gameState.level4.boneDamage = 1;
+                clearHandlers();
+                beginLevel4();
+            };
+        }
+
+function beginLevel4() {
             goToLevel(3);
             const gameArea = document.getElementById('level4-game-area');
             
@@ -1547,9 +1633,8 @@
             // 开始游戏循环
             cancelAnimationFrame(level4Animation);
             level4Animation = requestAnimationFrame(updateLevel4);
-        }
-        
-        function updateLevel4() {
+}
+function updateLevel4() {
             const gameArea = document.getElementById('level4-game-area');
             
             // 更新计时器
@@ -1565,12 +1650,12 @@
             }
             
             // 生成弹幕
-            if (Math.random() < 0.1 * (1/gameState.level4.speedFactor)) {
+            if (Math.random() < 0.15 * (1/gameState.level4.speedFactor)) {
                 createBullet();
             }
             
             // 生成骨头弹幕
-            if (Math.random() < 0.05 * (1/gameState.level4.speedFactor)) {
+            if (Math.random() < 0.08 * (1/gameState.level4.speedFactor)) {
                 createBone();
             }
             
@@ -1580,7 +1665,15 @@
             // 检查游戏结束条件
             if (gameState.level4.timer <= 0) {
                 cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
                 showEnding(true);
+                return;
+                return;
+                return;
                 return;
             }
             
@@ -1605,8 +1698,8 @@
             bullet.style.top = `${startY}px`;
             
             // 随机速度
-            const speedX = (Math.random() - 0.5) * 6 * gameState.level4.speedFactor;
-            const speedY = (2 + Math.random() * 4) * gameState.level4.speedFactor;
+            const speedX = (Math.random() - 0.5) * 6 * gameState.level4.speedFactor * (gameState.level4.bulletSpeedMult || 1);
+            const speedY = (2 + Math.random() * 4) * gameState.level4.speedFactor * (gameState.level4.bulletSpeedMult || 1);
             
             gameArea.appendChild(bullet);
             gameState.level4.bullets.push({
@@ -1638,7 +1731,7 @@
             bone.style.top = `${startY}px`;
             
             // 速度
-            const speedY = (3 + Math.random() * 3) * gameState.level4.speedFactor;
+            const speedY = (3 + Math.random() * 3) * gameState.level4.speedFactor * (gameState.level4.boneSpeedMult || 1);
             
             gameArea.appendChild(bone);
             gameState.level4.bones.push({
@@ -1672,7 +1765,7 @@
                 
                 if (distance < playerSize + bullet.size/2) {
                     // 减少生命值
-                    gameState.level4.health -= 15;
+                    gameState.level4.health -= (gameState.level4.bulletDamage || 4);
                     updateHealthBar(4);
                     
                     // 移除子弹
@@ -1682,7 +1775,18 @@
                     // 检查生命值
                     if (gameState.level4.health <= 0) {
                         cancelAnimationFrame(level4Animation);
+                        gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                gameState.level4.timer = 0;
+                        showEnding(false);
+                        gameState.level4.timer = 0;
+                        showEnding(false);
                         showLuXunQuote();
+                return;
+                return;
                         return;
                     }
                 }
@@ -1707,7 +1811,7 @@
                     bone.x < playerX + playerSize &&
                     bone.x + bone.width > playerX) {
                     // 减少生命值
-                    gameState.level4.health -= 15;
+                    gameState.level4.health -= (gameState.level4.bulletDamage || 4);
                     updateHealthBar(4);
                     
                     // 移除骨头
@@ -1717,7 +1821,18 @@
                     // 检查生命值
                     if (gameState.level4.health <= 0) {
                         cancelAnimationFrame(level4Animation);
+                        gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                cancelAnimationFrame(level4Animation);
+                gameState.currentLevel = 4;
+                gameState.level4.timer = 0;
+                        showEnding(false);
+                        gameState.level4.timer = 0;
+                        showEnding(false);
                         showLuXunQuote();
+                return;
+                return;
                         return;
                     }
                 }
@@ -1755,7 +1870,7 @@
                 `;
                 
                 // 显示鲁迅名言
-                setTimeout(showLuXunQuote, 1000);
+                setTimeout(showLuXunQuote, 10000);
             }
         }
         
