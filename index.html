@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图书馆腿部挠痒模拟器</title>
+    <title>图书馆腿部挠痒模拟器 - 第二关优化</title>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
     <style>
         * {
@@ -11,29 +11,31 @@
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            touch-action: manipulation;
         }
         
         body {
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
             font-family: 'ZCOOL QingKe HuangYou', cursive;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #fff;
             text-shadow: 0 0 5px rgba(0,0,0,0.7);
+            padding: 10px;
         }
         
         #game-container {
-            width: 800px;
-            height: 600px;
+            width: 100%;
+            max-width: 800px;
             position: relative;
             background: rgba(10, 15, 40, 0.85);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             border: 3px solid #5d3a00;
+            aspect-ratio: 4/3;
         }
         
         .screen {
@@ -57,23 +59,23 @@
         }
         
         h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
             color: #ffcc00;
             font-family: 'Ma Shan Zheng', cursive;
             text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
         }
         
         h2 {
-            font-size: 36px;
-            margin: 20px 0;
+            font-size: 1.8rem;
+            margin: 15px 0;
             color: #ff9966;
         }
         
         p {
-            font-size: 24px;
-            margin: 10px 0;
+            font-size: 1.1rem;
+            margin: 8px 0;
             line-height: 1.6;
             max-width: 90%;
         }
@@ -82,9 +84,9 @@
             background: linear-gradient(to bottom, #ff9900, #cc6600);
             color: #fff;
             font-family: 'Ma Shan Zheng', cursive;
-            font-size: 24px;
-            padding: 12px 30px;
-            margin: 20px 10px;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            margin: 15px 8px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
@@ -102,7 +104,10 @@
             transform: translateY(1px);
         }
         
-        #game-canvas {
+        .game-canvas {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
             background: #0a1022;
             border: 2px solid #3a2a1e;
             border-radius: 5px;
@@ -111,36 +116,37 @@
         
         #dialogue-box {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
             background: rgba(30, 20, 10, 0.9);
             border: 3px solid #5d3a00;
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             display: none;
             z-index: 10;
         }
         
         #dialogue-text {
-            font-size: 22px;
-            margin-bottom: 20px;
+            font-size: 1rem;
+            margin-bottom: 15px;
             line-height: 1.5;
             color: #e9d8a6;
         }
         
         #dialogue-options {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
         }
         
         .dialogue-btn {
             background: linear-gradient(to bottom, #4a752c, #2a4a1c);
             color: #d1e7dd;
-            font-size: 18px;
-            padding: 10px 20px;
+            font-size: 0.9rem;
+            padding: 8px 15px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -153,13 +159,14 @@
         
         .timer {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 24px;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
             background: rgba(0,0,0,0.5);
-            padding: 5px 15px;
-            border-radius: 10px;
+            padding: 4px 12px;
+            border-radius: 8px;
             border: 2px solid #ffcc00;
+            z-index: 5;
         }
         
         .game-over {
@@ -178,47 +185,58 @@
         }
         
         .game-over h2 {
-            font-size: 72px;
+            font-size: 3rem;
             color: #ff3333;
             text-shadow: 0 0 20px #ff0000;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .game-over p {
-            font-size: 28px;
-            margin: 10px 0;
+            font-size: 1.3rem;
+            margin: 8px 0;
         }
         
         .ending {
-            font-size: 60px;
+            font-size: 3rem;
             text-align: center;
-            margin: 30px 0;
+            margin: 20px 0;
         }
         
         .quote {
-            font-size: 80px;
+            font-size: 2.5rem;
             color: #ffcc00;
-            margin: 40px 0;
+            margin: 20px 0;
             text-align: center;
         }
         
         .red-text {
             color: #ff3333;
-            font-size: 100px;
+            font-size: 4rem;
             text-shadow: 0 0 30px #ff0000;
-            margin-top: 30px;
+            margin-top: 20px;
             animation: pulse 1.5s infinite;
         }
         
-        #level-indicator {
+        .level-indicator {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            font-size: 24px;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2rem;
             background: rgba(0,0,0,0.5);
-            padding: 5px 15px;
-            border-radius: 10px;
+            padding: 4px 12px;
+            border-radius: 8px;
             border: 2px solid #00ccff;
+            z-index: 5;
+        }
+        
+        .author-signature {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            z-index: 5;
         }
         
         #sans-container {
@@ -231,28 +249,32 @@
         
         .scratch-indicator {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20px;
+            font-size: 1rem;
             background: rgba(0,0,0,0.7);
-            padding: 8px 15px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
             border: 1px solid #ff9900;
+            text-align: center;
+            width: 90%;
+            z-index: 5;
         }
         
         .instructions {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 18px;
+            font-size: 0.9rem;
             background: rgba(0,0,0,0.7);
-            padding: 8px 15px;
-            border-radius: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
             border: 1px solid #00ccff;
             text-align: center;
-            width: 80%;
+            width: 90%;
+            z-index: 5;
         }
         
         #lu-xun-fullscreen {
@@ -268,14 +290,15 @@
             align-items: center;
             z-index: 1000;
             font-family: 'Ma Shan Zheng', cursive;
+            padding: 20px;
         }
         
         .lu-xun-text {
-            font-size: 80px;
+            font-size: 2.5rem;
             font-weight: bold;
             color: #ff0000;
             text-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
-            margin: 15px 0;
+            margin: 10px 0;
             opacity: 0;
             animation: appear 1s forwards;
             text-align: center;
@@ -293,9 +316,9 @@
         }
         
         .lu-xun-signature {
-            font-size: 60px;
+            font-size: 2rem;
             color: #ff6666;
-            margin-top: 60px;
+            margin-top: 30px;
             text-align: right;
             width: 80%;
             opacity: 0;
@@ -343,9 +366,9 @@
         
         #level4-timer {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 36px;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
             color: #ffcc00;
             text-shadow: 0 0 5px #000;
             z-index: 10;
@@ -353,11 +376,11 @@
         
         .sans-eye {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: #ffffff;
             border-radius: 50%;
-            top: 100px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
             overflow: hidden;
@@ -366,8 +389,8 @@
         
         .sans-pupil {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             background: #000000;
             border-radius: 50%;
             top: 50%;
@@ -377,8 +400,9 @@
         
         #level4-game-area {
             position: relative;
-            width: 700px;
-            height: 500px;
+            width: 100%;
+            max-width: 700px;
+            height: 70%;
             background: #000;
             border: 2px solid #444;
             margin: 10px auto;
@@ -388,10 +412,108 @@
         .movement-boundary {
             position: absolute;
             border: 2px dashed #555;
-            top: 150px;
-            left: 150px;
-            width: 400px;
-            height: 250px;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 50%;
+        }
+        
+        /* 移动设备优化 */
+        .mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            justify-content: center;
+            gap: 20px;
+            z-index: 10;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            touch-action: manipulation;
+        }
+        
+        /* 响应式媒体查询 */
+        @media (max-width: 768px) {
+            #game-container {
+                aspect-ratio: 9/16;
+                max-height: 90vh;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            p {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                font-size: 1rem;
+                padding: 8px 16px;
+            }
+            
+            .timer, .level-indicator {
+                font-size: 1rem;
+            }
+            
+            .quote {
+                font-size: 1.8rem;
+            }
+            
+            .red-text {
+                font-size: 3rem;
+            }
+            
+            .lu-xun-text {
+                font-size: 1.8rem;
+            }
+            
+            .lu-xun-signature {
+                font-size: 1.5rem;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                font-size: 0.9rem;
+            }
+            
+            .lu-xun-text {
+                font-size: 1.5rem;
+            }
+            
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -404,7 +526,7 @@
             <p>你必须在不被发现的情况下解决这个问题！</p>
             <p>注意躲避他人的目光，否则后果不堪设想！</p>
             <button id="start-btn" class="btn">开始挑战</button>
-            <div style="margin-top: 30px; font-size: 18px; color: #aaa;">
+            <div style="margin-top: 20px; font-size: 0.9rem; color: #aaa;">
                 <p>游戏共有四关：挠痒 → 自救 → 正确 → 真相</p>
                 <p>失败结局：身败名裂 + 鲁迅名言</p>
             </div>
@@ -413,26 +535,35 @@
         <!-- 第一关：图书馆挠痒 -->
         <div id="level1-screen" class="screen">
             <h2>第一关：腿部奇痒</h2>
-            <canvas id="level1-canvas" width="700" height="400"></canvas>
+            <canvas id="level1-canvas" class="game-canvas"></canvas>
             <div id="level1-timer" class="timer">时间: 30秒</div>
-            <div id="level-indicator">第一关</div>
+            <div id="level-indicator" class="level-indicator">第一关</div>
             <div class="scratch-indicator">点击腿部开始挠痒</div>
         </div>
         
         <!-- 第二关：自救 -->
         <div id="level2-screen" class="screen">
-            <h2>第二关：自救</h2>
-            <canvas id="level2-canvas" width="700" height="400"></canvas>
-            <div id="level-indicator2">第二关</div>
-            <div class="instructions">使用 ← → 键移动，躲避从上落下的诬陷文字</div>
+            <h2>第二关：自救之路</h2>
+            <canvas id="level2-canvas" class="game-canvas"></canvas>
+            <div id="level-indicator2" class="level-indicator">第二关</div>
+            <div class="instructions">左右移动躲避诬陷文字，到达法庭证明清白</div>
+            <div class="mobile-controls">
+                <div class="control-btn" id="left-btn">←</div>
+                <div class="control-btn" id="right-btn">→</div>
+            </div>
+            <div class="author-signature">作者：大爱不朽</div>
         </div>
         
         <!-- 第三关：正确 -->
         <div id="level3-screen" class="screen">
             <h2>第三关：正确</h2>
-            <canvas id="level3-canvas" width="700" height="400"></canvas>
-            <div id="level-indicator3">第三关</div>
+            <canvas id="level3-canvas" class="game-canvas"></canvas>
+            <div id="level-indicator3" class="level-indicator">第三关</div>
             <div class="instructions">使用 ← → 键移动，躲避从上落下的诬陷弹幕</div>
+            <div class="mobile-controls">
+                <div class="control-btn" id="left-btn2">←</div>
+                <div class="control-btn" id="right-btn2">→</div>
+            </div>
         </div>
         
         <!-- 第四关：真相 -->
@@ -445,8 +576,14 @@
                 <div class="movement-boundary"></div>
                 <div id="level4-timer">时间: 30秒</div>
             </div>
-            <div id="level-indicator4">最终关</div>
+            <div id="level-indicator4" class="level-indicator">最终关</div>
             <div class="instructions">使用方向键移动红色心脏，躲避蓝色弹幕攻击</div>
+            <div class="mobile-controls">
+                <div class="control-btn" id="up-btn">↑</div>
+                <div class="control-btn" id="left-btn3">←</div>
+                <div class="control-btn" id="down-btn">↓</div>
+                <div class="control-btn" id="right-btn3">→</div>
+            </div>
         </div>
         
         <!-- 结局屏幕 -->
@@ -474,7 +611,7 @@
         <div class="lu-xun-text" style="animation-delay: 0s">今日若我冷眼旁观,</div>
         <div class="lu-xun-text" style="animation-delay: 1s">他日亦无人为我摇旗呐喊！</div>
         <div class="lu-xun-signature" style="animation-delay: 2s">———鲁迅先生</div>
-        <button id="lu-xun-close" class="btn" style="margin-top: 80px; animation-delay: 3s">返回游戏</button>
+        <button id="lu-xun-close" class="btn" style="margin-top: 40px; animation-delay: 3s">返回游戏</button>
     </div>
 
     <script>
@@ -512,7 +649,11 @@
             },
             isScratching: false,
             gameOver: false,
-            gameWon: false
+            gameWon: false,
+            level2: {
+                backgroundOffset: 0,
+                playerSpeed: 2.5
+            }
         };
         
         // DOM元素
@@ -530,6 +671,22 @@
             level2: document.getElementById('level2-canvas'),
             level3: document.getElementById('level3-canvas')
         };
+        
+        // 设置画布尺寸
+        function resizeCanvases() {
+            const containerWidth = document.getElementById('game-container').offsetWidth;
+            const canvasWidth = Math.min(700, containerWidth * 0.95);
+            const canvasHeight = canvasWidth * 0.8; // 增大活动空间
+            
+            canvases.level1.width = canvasWidth;
+            canvases.level1.height = canvasHeight;
+            
+            canvases.level2.width = canvasWidth;
+            canvases.level2.height = canvasHeight;
+            
+            canvases.level3.width = canvasWidth;
+            canvases.level3.height = canvasHeight;
+        }
         
         const ctx = {
             level1: canvases.level1.getContext('2d'),
@@ -584,6 +741,12 @@
         
         // 初始化游戏
         function init() {
+            // 初始调整画布尺寸
+            resizeCanvases();
+            
+            // 窗口大小变化时重新调整画布
+            window.addEventListener('resize', resizeCanvases);
+            
             // 设置按钮事件
             document.getElementById('start-btn').addEventListener('click', startGame);
             document.getElementById('restart-btn').addEventListener('click', restartGame);
@@ -596,8 +759,76 @@
             canvases.level1.addEventListener('mousemove', movePlayer);
             canvases.level1.addEventListener('click', toggleScratching);
             
+            // 设置触摸事件
+            canvases.level1.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvases.level1.addEventListener('touchstart', handleTouchStart, { passive: false });
+            
             // 设置键盘事件
             window.addEventListener('keydown', handleKeyDown);
+            
+            // 移动设备控制按钮
+            document.getElementById('left-btn').addEventListener('touchstart', () => moveMobilePlayer('left'));
+            document.getElementById('right-btn').addEventListener('touchstart', () => moveMobilePlayer('right'));
+            document.getElementById('left-btn2').addEventListener('touchstart', () => moveMobilePlayer('left'));
+            document.getElementById('right-btn2').addEventListener('touchstart', () => moveMobilePlayer('right'));
+            document.getElementById('up-btn').addEventListener('touchstart', () => moveMobilePlayer('up'));
+            document.getElementById('left-btn3').addEventListener('touchstart', () => moveMobilePlayer('left'));
+            document.getElementById('down-btn').addEventListener('touchstart', () => moveMobilePlayer('down'));
+            document.getElementById('right-btn3').addEventListener('touchstart', () => moveMobilePlayer('right'));
+        }
+        
+        // 移动设备玩家控制
+        function moveMobilePlayer(direction) {
+            const canvas = canvases[`level${gameState.currentLevel + 1}`];
+            if (!canvas) return;
+            
+            switch(direction) {
+                case 'left':
+                    if (gameState.player.x > 30) {
+                        gameState.player.x -= 10;
+                    }
+                    break;
+                case 'right':
+                    if (gameState.player.x < canvas.width - 30) {
+                        gameState.player.x += 10;
+                    }
+                    break;
+                case 'up':
+                    if (gameState.level4.player.y > 150) {
+                        gameState.level4.player.y -= 8;
+                        if (gameState.level4.playerElement) {
+                            gameState.level4.playerElement.style.top = `${gameState.level4.player.y}px`;
+                        }
+                    }
+                    break;
+                case 'down':
+                    if (gameState.level4.player.y < 400) {
+                        gameState.level4.player.y += 8;
+                        if (gameState.level4.playerElement) {
+                            gameState.level4.playerElement.style.top = `${gameState.level4.player.y}px`;
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        // 触摸移动处理
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (gameState.currentLevel === 0) {
+                const rect = canvases.level1.getBoundingClientRect();
+                const touch = e.touches[0];
+                gameState.player.x = touch.clientX - rect.left;
+                gameState.player.y = touch.clientY - rect.top;
+            }
+        }
+        
+        // 触摸开始处理
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (gameState.currentLevel === 0) {
+                toggleScratching();
+            }
         }
         
         // 开始游戏
@@ -645,13 +876,13 @@
         }
         
         // 第一关：图书馆挠痒
-        let level1Interval;
+        let level1Animation;
         let level1Time = 30;
         
         function startLevel1() {
             // 重置游戏状态
-            gameState.player.x = 350;
-            gameState.player.y = 300;
+            gameState.player.x = canvases.level1.width / 2;
+            gameState.player.y = canvases.level1.height * 0.75;
             gameState.eye.x = 100;
             gameState.eye.y = 100;
             gameState.isScratching = false;
@@ -661,8 +892,8 @@
             document.getElementById('level1-timer').textContent = `时间: ${level1Time}秒`;
             
             // 开始游戏循环
-            clearInterval(level1Interval);
-            level1Interval = setInterval(updateLevel1, 1000/60);
+            cancelAnimationFrame(level1Animation);
+            level1Animation = requestAnimationFrame(updateLevel1);
         }
         
         function updateLevel1() {
@@ -699,8 +930,9 @@
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance < gameState.eye.radius + 20 && gameState.isScratching) {
-                clearInterval(level1Interval);
+                cancelAnimationFrame(level1Animation);
                 showDialogue();
+                return;
             }
             
             // 计时器逻辑
@@ -709,11 +941,14 @@
                 document.getElementById('level1-timer').textContent = `时间: ${Math.ceil(level1Time)}秒`;
                 
                 if (level1Time <= 0) {
-                    clearInterval(level1Interval);
+                    cancelAnimationFrame(level1Animation);
                     document.getElementById('dialogue-text').textContent = "时间到！对方开启狂暴模式，强制使用技能【正确】！";
                     showDialogue();
+                    return;
                 }
             }
+            
+            level1Animation = requestAnimationFrame(updateLevel1);
         }
         
         function drawLibraryBackground(ctx, width, height) {
@@ -723,30 +958,43 @@
             
             // 绘制书架
             ctx.fillStyle = '#3a2a1e';
+            const shelfWidth = Math.min(100, width / 8);
+            const shelfSpacing = (width - 5 * shelfWidth) / 6;
+            
             for (let i = 0; i < 5; i++) {
-                ctx.fillRect(50 + i*140, 50, 100, 300);
+                ctx.fillRect(shelfSpacing + i*(shelfWidth + shelfSpacing), 50, shelfWidth, height * 0.55);
             }
             
             // 绘制书籍
             ctx.fillStyle = '#8b4513';
             for (let shelf = 0; shelf < 5; shelf++) {
                 for (let book = 0; book < 6; book++) {
-                    ctx.fillRect(60 + shelf*140, 70 + book*45, 80, 30);
+                    ctx.fillRect(
+                        shelfSpacing + 10 + shelf*(shelfWidth + shelfSpacing), 
+                        70 + book*((height * 0.55 - 40) / 6), 
+                        shelfWidth - 20, 
+                        (height * 0.55 - 40) / 7
+                    );
                     ctx.fillStyle = '#d2b48c';
-                    ctx.fillRect(65 + shelf*140, 75 + book*45, 70, 20);
+                    ctx.fillRect(
+                        shelfSpacing + 15 + shelf*(shelfWidth + shelfSpacing), 
+                        75 + book*((height * 0.55 - 40) / 6), 
+                        shelfWidth - 30, 
+                        (height * 0.55 - 40) / 8
+                    );
                     ctx.fillStyle = '#8b4513';
                 }
             }
             
             // 绘制桌子
             ctx.fillStyle = '#2a1e0f';
-            ctx.fillRect(100, 380, 500, 20);
-            ctx.fillRect(120, 400, 40, 100);
-            ctx.fillRect(540, 400, 40, 100);
+            ctx.fillRect(width * 0.1, height * 0.8, width * 0.8, height * 0.05);
+            ctx.fillRect(width * 0.15, height * 0.85, width * 0.05, height * 0.15);
+            ctx.fillRect(width * 0.8, height * 0.85, width * 0.05, height * 0.15);
             
             // 绘制玩家座位
             ctx.fillStyle = '#3a2a1e';
-            ctx.fillRect(300, 400, 100, 100);
+            ctx.fillRect(width * 0.4, height * 0.85, width * 0.2, height * 0.15);
         }
         
         function drawEye(ctx, x, y, radius) {
@@ -883,23 +1131,23 @@
             gameOver.style.display = 'flex';
         }
         
-        // 第二关：自救（赛车小游戏）
-        let level2Interval;
+        // 第二关：自救（强制前进效果）
+        let level2Animation;
         
         function startLevel2() {
             goToLevel(1);
             gameState.obstacles = [];
+            gameState.level2.backgroundOffset = 0;
             
             const canvas = canvases.level2;
-            const ctx = canvases.level2.getContext('2d');
             
             // 初始化玩家位置
             gameState.player.x = canvas.width / 2;
-            gameState.player.y = canvas.height - 50;
+            gameState.player.y = canvas.height - 100;
             
             // 开始游戏循环
-            clearInterval(level2Interval);
-            level2Interval = setInterval(updateLevel2, 1000/60);
+            cancelAnimationFrame(level2Animation);
+            level2Animation = requestAnimationFrame(updateLevel2);
         }
         
         function updateLevel2() {
@@ -909,8 +1157,17 @@
             // 清空画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 绘制背景
-            drawCourtBackground(ctx, canvas.width, canvas.height);
+            // 更新背景偏移量（产生前进效果）
+            gameState.level2.backgroundOffset += gameState.level2.playerSpeed;
+            if (gameState.level2.backgroundOffset >= canvas.height) {
+                gameState.level2.backgroundOffset = 0;
+            }
+            
+            // 绘制背景（道路循环效果）
+            drawCourtBackground(ctx, canvas.width, canvas.height, gameState.level2.backgroundOffset);
+            
+            // 玩家强制向前移动（向上移动）
+            gameState.player.y -= gameState.level2.playerSpeed;
             
             // 绘制玩家（"清白"文字）
             ctx.font = "bold 30px 'Ma Shan Zheng', cursive";
@@ -919,7 +1176,7 @@
             ctx.fillText("清白", gameState.player.x, gameState.player.y);
             
             // 生成路障（从上往下）
-            if (Math.random() < 0.05) {
+            if (Math.random() < 0.0425) { // 降低15%攻击频率
                 const obstacle = {
                     x: Math.random() * canvas.width,
                     y: -30,
@@ -946,7 +1203,7 @@
                 const dx = gameState.player.x - obstacle.x;
                 const dy = gameState.player.y - obstacle.y;
                 if (Math.abs(dx) < 50 && Math.abs(dy) < 30) {
-                    clearInterval(level2Interval);
+                    cancelAnimationFrame(level2Animation);
                     showGameOver("卒", "你被流言蜚语击倒了...");
                     return;
                 }
@@ -956,55 +1213,70 @@
                     gameState.obstacles.splice(i, 1);
                 }
             }
+            
+            // 检查是否到达终点（法庭）
+            if (gameState.player.y <= 50) {
+                cancelAnimationFrame(level2Animation);
+                setTimeout(() => {
+                    startLevel3();
+                }, 1000);
+                return;
+            }
+            
+            level2Animation = requestAnimationFrame(updateLevel2);
         }
         
-        function drawCourtBackground(ctx, width, height) {
+        function drawCourtBackground(ctx, width, height, offset) {
             // 绘制法庭背景
             ctx.fillStyle = '#1a3a5a';
             ctx.fillRect(0, 0, width, height);
             
-            // 绘制法官席
-            ctx.fillStyle = '#5d3a00';
-            ctx.fillRect(width/2 - 150, 50, 300, 80);
+            // 绘制道路（循环效果）
+            ctx.fillStyle = '#555';
+            for (let y = -offset; y < height; y += 40) {
+                ctx.fillRect(0, y, width, 20);
+            }
             
-            // 绘制法官椅
+            // 绘制道路标记
+            ctx.fillStyle = '#ffcc00';
+            for (let y = -offset + 10; y < height; y += 40) {
+                ctx.fillRect(width/2 - 5, y, 10, 10);
+            }
+            
+            // 绘制道路两侧
+            ctx.fillStyle = '#2a4a1c';
+            ctx.fillRect(0, 0, width * 0.2, height);
+            ctx.fillRect(width * 0.8, 0, width * 0.2, height);
+            
+            // 绘制终点（法庭）
+            ctx.fillStyle = '#5d3a00';
+            ctx.fillRect(width/2 - 150, 0, 300, 80);
             ctx.fillStyle = '#3a2a1e';
-            ctx.fillRect(width/2 - 30, 130, 60, 150);
+            ctx.fillRect(width/2 - 30, 80, 60, 40);
             
             // 绘制文字
             ctx.font = "bold 24px 'Ma Shan Zheng', cursive";
             ctx.fillStyle = "#ffffff";
             ctx.textAlign = "center";
             ctx.fillText("道德法庭", width/2, 30);
-            
-            // 绘制地板线条
-            ctx.strokeStyle = '#d2b48c';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < width; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, height);
-                ctx.lineTo(i + 20, height - 20);
-                ctx.stroke();
-            }
         }
         
         // 第三关：正确（弹幕游戏）
-        let level3Interval;
+        let level3Animation;
         
         function startLevel3() {
             goToLevel(2);
             gameState.bullets = [];
             
             const canvas = canvases.level3;
-            const ctx = canvases.level3.getContext('2d');
             
             // 初始化玩家位置
             gameState.player.x = canvas.width / 2;
             gameState.player.y = canvas.height - 30;
             
             // 开始游戏循环
-            clearInterval(level3Interval);
-            level3Interval = setInterval(updateLevel3, 1000/60);
+            cancelAnimationFrame(level3Animation);
+            level3Animation = requestAnimationFrame(updateLevel3);
         }
         
         function updateLevel3() {
@@ -1053,7 +1325,7 @@
                 const dx = gameState.player.x - bullet.x;
                 const dy = gameState.player.y - bullet.y;
                 if (Math.abs(dx) < 50 && Math.abs(dy) < 20) {
-                    clearInterval(level3Interval);
+                    cancelAnimationFrame(level3Animation);
                     showGameOver("死", "你被网络暴力吞噬了...");
                     return;
                 }
@@ -1063,6 +1335,8 @@
                     gameState.bullets.splice(i, 1);
                 }
             }
+            
+            level3Animation = requestAnimationFrame(updateLevel3);
         }
         
         function drawInternetBackground(ctx, width, height) {
@@ -1107,7 +1381,7 @@
         }
         
         // 第四关：真相（Sans战）
-        let level4Interval;
+        let level4Animation;
         let playerElement;
         
         function startLevel4() {
@@ -1115,7 +1389,7 @@
             const gameArea = document.getElementById('level4-game-area');
             
             // 重置游戏状态
-            gameState.level4.player = { x: 350, y: 350 };
+            gameState.level4.player = { x: gameArea.offsetWidth / 2, y: gameArea.offsetHeight * 0.8 };
             gameState.level4.bullets = [];
             gameState.level4.bones = [];
             gameState.level4.timer = 30;
@@ -1133,8 +1407,8 @@
             gameState.level4.playerElement = playerElement;
             
             // 开始游戏循环
-            clearInterval(level4Interval);
-            level4Interval = setInterval(updateLevel4, 1000/60);
+            cancelAnimationFrame(level4Animation);
+            level4Animation = requestAnimationFrame(updateLevel4);
         }
         
         function updateLevel4() {
@@ -1159,9 +1433,12 @@
             
             // 检查游戏结束条件
             if (gameState.level4.timer <= 0) {
-                clearInterval(level4Interval);
+                cancelAnimationFrame(level4Animation);
                 showEnding(true);
+                return;
             }
+            
+            level4Animation = requestAnimationFrame(updateLevel4);
         }
         
         function createBullet() {
@@ -1175,8 +1452,8 @@
             bullet.style.height = `${size}px`;
             
             // 随机起始位置（从眼睛发射）
-            const startX = 350 + (Math.random() * 100 - 50);
-            const startY = 100;
+            const startX = gameArea.offsetWidth / 2 + (Math.random() * 100 - 50);
+            const startY = 70;
             
             bullet.style.left = `${startX}px`;
             bullet.style.top = `${startY}px`;
@@ -1208,7 +1485,7 @@
             bone.style.height = `${height}px`;
             
             // 随机起始位置
-            const startX = Math.random() * 600;
+            const startX = Math.random() * (gameArea.offsetWidth - 100);
             const startY = -30;
             
             bone.style.left = `${startX}px`;
@@ -1248,7 +1525,7 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance < playerSize + bullet.size/2) {
-                    clearInterval(level4Interval);
+                    cancelAnimationFrame(level4Animation);
                     showLuXunQuote();
                     return;
                 }
@@ -1272,7 +1549,7 @@
                     bone.y + bone.height > playerY &&
                     bone.x < playerX + playerSize &&
                     bone.x + bone.width > playerX) {
-                    clearInterval(level4Interval);
+                    cancelAnimationFrame(level4Animation);
                     showLuXunQuote();
                     return;
                 }
@@ -1337,9 +1614,9 @@
                 const speed = 8;
                 const boundary = {
                     left: 150,
-                    right: 550,
+                    right: document.getElementById('level4-game-area').offsetWidth - 150,
                     top: 150,
-                    bottom: 400
+                    bottom: document.getElementById('level4-game-area').offsetHeight - 100
                 };
                 
                 if (e.key === 'ArrowLeft' && gameState.level4.player.x > boundary.left) {
@@ -1363,5 +1640,4 @@
         window.onload = init;
     </script>
 </body>
-
 </html>
