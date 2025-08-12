@@ -1582,6 +1582,7 @@
         
         
 function startLevel4() {
+            document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'flex');
             document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'none');
             goToLevel(3);
             const modeSelect = document.getElementById('level4-mode-select');
@@ -1627,6 +1628,7 @@ function startLevel4() {
         }
 
 function beginLevel4() {
+            document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'flex');
             document.querySelectorAll('.mobile-controls').forEach(mc => mc.style.display = 'flex');
             goToLevel(3);
             const gameArea = document.getElementById('level4-game-area');
