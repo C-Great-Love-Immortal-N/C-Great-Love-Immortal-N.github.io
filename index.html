@@ -1967,5 +1967,133 @@ function updateLevel4() {
         // 初始化游戏
         window.onload = init;
     </script>
+
+<!-- ===== Patch: Robust Ending Display System (guarded, single-source-of-truth) ===== -->
+<script>
+(function() {
+  // Create safe namespace on gameState if present, otherwise bail out gracefully
+  // (Most of your code defines `gameState` globally.)
+  if (typeof window.gameState !== "object") { window.gameState = {}; }
+  const gs = window.gameState;
+  if (!("endingShown" in gs)) {
+    gs.endingShown = false;
+    gs.endingResult = null; // 'win' | 'lose'
+  }
+  gs._luXunShown = false;
+
+  // Keep a reference to any existing functions we might be replacing
+  const _oldShowEnding = window.showEnding;
+  const _oldShowLuXun = window.showLuXunQuote;
+
+  // Helper: stop Level 4 loops & clear projectiles cleanly
+  function stopLevel4Loop() {
+    try {
+      if (typeof window.cancelAnimationFrame === "function" && typeof window.level4Animation !== "undefined") {
+        cancelAnimationFrame(window.level4Animation);
+      }
+    } catch (e) {}
+
+    try {
+      // Remove leftover bullets/bones to avoid ghost collisions
+      const area = document.getElementById('level4-game-area');
+      if (area) {
+        area.querySelectorAll('.bullet, .bone-bullet').forEach(el => el.remove());
+      }
+      if (gs.level4) {
+        gs.level4.bullets = [];
+        gs.level4.bones = [];
+        gs.level4.timer = 0;
+      }
+    } catch (e) {}
+  }
+
+  // Single source of truth to finish the game. Call this instead of directly writing DOM.
+  function endGame(isWin) {
+    if (gs.endingShown) return; // Guard against duplicates from multiple timers/collisions
+    gs.endingShown = true;
+    gs.endingResult = isWin ? 'win' : 'lose';
+
+    // Make sure any running loops are stopped
+    stopLevel4Loop();
+
+    // Ensure we are on the ending screen
+    if (typeof window.goToLevel === "function") {
+      window.goToLevel(4);
+    } else {
+      // Fallback if goToLevel is missing: toggle screens manually
+      document.querySelectorAll('.screen').forEach(sc => sc.classList.remove('active'));
+      const ending = document.getElementById('ending-screen');
+      if (ending) ending.classList.add('active');
+    }
+
+    // Fill ending content
+    const endingContent = document.getElementById('ending-content');
+    if (endingContent) {
+      if (isWin) {
+        endingContent.innerHTML = `
+          <h2>结局一</h2>
+          <div class="quote">“无事发生”</div>
+          <p>你成功证明了清白，但互联网没有记忆。</p>
+          <p>一切仿佛从未发生，生活继续。</p>
+        `;
+      } else {
+        endingContent.innerHTML = `
+          <h2>结局二</h2>
+          <p>身败名裂，你激情 cos 牛顿第一、二、三定律。</p>
+          <div class="red-text">死</div>
+        `;
+      }
+    }
+
+    // Only allow Lu Xun full-screen to appear on LOSS, and only once, after 10s.
+    gs._luXunShown = false;
+    if (!isWin) {
+      setTimeout(() => {
+        // This call is guarded in our overridden showLuXunQuote
+        if (typeof window.showLuXunQuote === "function") window.showLuXunQuote();
+      }, 10000);
+    }
+  }
+
+  // Override global showEnding to route through our guarded endGame()
+  window.showEnding = function(isWin) {
+    // Normalize boolean
+    const win = !!isWin;
+    endGame(win);
+  };
+
+  // Override global showLuXunQuote to be conditional & idempotent
+  window.showLuXunQuote = function() {
+    if (gs.endingResult !== 'lose') return; // only on loss
+    if (gs._luXunShown) return; // show once
+    gs._luXunShown = true;
+    const pane = document.getElementById('lu-xun-fullscreen');
+    if (pane) {
+      pane.style.display = 'flex';
+    }
+  };
+
+  // Extra safety: if any code tries to trigger multiple endings rapidly (e.g., timer + collision),
+  // our guard will ensure only the first takes effect.
+  // Optional: expose a small API for timer-based wins
+  window._finalizeWinIfTimerZero = function() {
+    if (gs.endingShown) return;
+    const alive = gs?.level4?.health == null ? true : gs.level4.health > 0;
+    if (alive) endGame(true);
+  };
+
+  // Hook up restart button to reset guards
+  const restartBtn = document.getElementById('restart-btn');
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      gs.endingShown = false;
+      gs.endingResult = null;
+      gs._luXunShown = false;
+    });
+  }
+})();
+</script>
+<!-- ===== End Patch ===== -->
+
 </body>
 </html>
